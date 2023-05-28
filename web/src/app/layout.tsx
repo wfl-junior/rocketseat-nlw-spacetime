@@ -22,7 +22,7 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-function RootLayout({ children }: RootLayoutProps) {
+function RootLayout({ children }: RootLayoutProps): JSX.Element | null {
   return (
     <html lang="pt-br" dir="ltr">
       <body

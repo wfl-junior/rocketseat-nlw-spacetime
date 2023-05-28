@@ -12,10 +12,15 @@ interface MemoryPreview {
 const excerptMaxLength = 115;
 
 export async function memoryRoutes(app: FastifyInstance) {
-  app.get("/memories", async () => {
+  app.addHook("preHandler", request => request.jwtVerify());
+
+  app.get("/memories", async request => {
     const memories = await prisma.memory.findMany({
       orderBy: {
         createdAt: "asc",
+      },
+      where: {
+        userId: request.user.sub,
       },
     });
 
@@ -35,12 +40,14 @@ export async function memoryRoutes(app: FastifyInstance) {
 
   app.get("/memories/:id", async (request, response) => {
     const { id } = idParamsValidationSchema.parse(request.params);
-    const memory = await prisma.memory.findUnique({
+    const memory = await prisma.memory.findUniqueOrThrow({
       where: { id },
     });
 
-    if (!memory) {
-      return response.status(404).send();
+    if (!memory.isPublic && memory.userId !== request.user.sub) {
+      return response
+        .status(403)
+        .send({ message: "Only the owner can access this memory" });
     }
 
     return {
@@ -53,7 +60,7 @@ export async function memoryRoutes(app: FastifyInstance) {
     const newMemory = await prisma.memory.create({
       data: {
         ...newMemoryData,
-        userId: "e92deb54-2ae5-416b-9e74-7eb4d5198e40",
+        userId: request.user.sub,
       },
     });
 
@@ -62,16 +69,23 @@ export async function memoryRoutes(app: FastifyInstance) {
     };
   });
 
-  app.put("/memories/:id", async request => {
+  app.put("/memories/:id", async (request, response) => {
     const { id } = idParamsValidationSchema.parse(request.params);
     const updateMemoryData = memoryValidationSchema.parse(request.body);
 
-    const memory = await prisma.memory.update({
+    let memory = await prisma.memory.findUniqueOrThrow({
       where: { id },
-      data: {
-        ...updateMemoryData,
-        userId: "e92deb54-2ae5-416b-9e74-7eb4d5198e40",
-      },
+    });
+
+    if (memory.userId !== request.user.sub) {
+      return response
+        .status(403)
+        .send({ message: "Only the owner can update this memory" });
+    }
+
+    memory = await prisma.memory.update({
+      where: { id },
+      data: updateMemoryData,
     });
 
     return {
@@ -81,6 +95,16 @@ export async function memoryRoutes(app: FastifyInstance) {
 
   app.delete("/memories/:id", async (request, response) => {
     const { id } = idParamsValidationSchema.parse(request.params);
+
+    const memory = await prisma.memory.findUniqueOrThrow({
+      where: { id },
+    });
+
+    if (memory.userId !== request.user.sub) {
+      return response
+        .status(403)
+        .send({ message: "Only the owner can update this memory" });
+    }
 
     await prisma.memory.delete({
       where: { id },

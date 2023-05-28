@@ -4,8 +4,11 @@ import {
   Roboto_700Bold,
   useFonts,
 } from "@expo-google-fonts/roboto";
+import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
+import { useRouter } from "expo-router";
+import * as ExpoSecureStore from "expo-secure-store";
 import { styled } from "nativewind";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import {
   ImageBackground,
   StatusBar,
@@ -16,15 +19,50 @@ import {
 import bgBlur from "~/assets/bg-blur.png";
 import LogoHorizontal from "~/assets/logo-horizontal.svg";
 import Stripes from "~/assets/stripes.svg";
+import { api } from "~/lib/api";
+
+const clientId = "e91bcadb597bb0eb208d";
+const discovery = {
+  authorizationEndpoint: "https://github.com/login/oauth/authorize",
+  tokenEndpoint: "https://github.com/login/oauth/access_token",
+  revocationEndpoint: `https://github.com/settings/connections/applications/${clientId}`,
+};
+
+interface RegisterResponse {
+  accessToken: string;
+}
 
 const StyledStripes = styled(Stripes);
 
-export default function App() {
+function Home(): JSX.Element | null {
+  const { push } = useRouter();
   const [hasLoadedFonts] = useFonts({
     Roboto_400Regular,
     Roboto_700Bold,
     BaiJamjuree_700Bold,
   });
+
+  const [, response, signInWithGitHub] = useAuthRequest(
+    {
+      clientId,
+      scopes: ["identity"],
+      redirectUri: makeRedirectUri({ scheme: "nlw-spacetime" }),
+    },
+    discovery,
+  );
+
+  useEffect(() => {
+    if (response?.type !== "success") return;
+    const { code } = response.params;
+
+    api
+      .post<RegisterResponse>("/auth/register", { code })
+      .then(async ({ data }) => {
+        await ExpoSecureStore.setItemAsync("accessToken", data.accessToken);
+        push("/memories");
+      })
+      .catch(console.error);
+  }, [response, push]);
 
   if (!hasLoadedFonts) {
     return null;
@@ -64,6 +102,7 @@ export default function App() {
 
           <TouchableOpacity
             activeOpacity={0.7}
+            onPress={() => signInWithGitHub()}
             className="bg-app-green-500 rounded-full px-5 py-2"
           >
             <Text className="font-alt text-sm uppercase leading-none text-black">
@@ -79,3 +118,5 @@ export default function App() {
     </Fragment>
   );
 }
+
+export default Home;

@@ -1,6 +1,6 @@
 interface LogoProps extends React.ComponentPropsWithoutRef<"svg"> {}
 
-export function Logo(props: LogoProps) {
+export function Logo(props: LogoProps): JSX.Element | null {
   return (
     <svg
       width={161}
