@@ -1,15 +1,26 @@
-import cors from "@fastify/cors";
-import jwt from "@fastify/jwt";
-import { Prisma } from "@prisma/client";
 import "dotenv/config";
+
+import fastifyCors from "@fastify/cors";
+import fastifyJwt from "@fastify/jwt";
+import fastifyMultipart from "@fastify/multipart";
+import fastifyStatic from "@fastify/static";
+import { Prisma } from "@prisma/client";
 import fastify from "fastify";
+import { resolve } from "node:path";
 import { ZodError } from "zod";
 import { authRoutes } from "./routes/auth";
 import { memoryRoutes } from "./routes/memory";
+import { uploadRoutes } from "./routes/upload";
 
 const app = fastify({ logger: true });
-app.register(cors, { origin: "http://localhost:3000" });
-app.register(jwt, { secret: process.env.JWT_SECRET });
+
+app.register(fastifyMultipart);
+app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
+app.register(fastifyCors, { origin: "http://localhost:3000" });
+app.register(fastifyStatic, {
+  prefix: "/uploads",
+  root: resolve(__dirname, "..", "uploads"),
+});
 
 app.setErrorHandler(async (error, _request, response) => {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -47,6 +58,7 @@ app.setErrorHandler(async (error, _request, response) => {
 });
 
 app.register(authRoutes);
+app.register(uploadRoutes);
 app.register(memoryRoutes);
 
 app.listen({ port: 3333, host: "0.0.0.0" });

@@ -19,9 +19,11 @@
     "lucide-react": "^0.221.0",
     "next": "13.4.4",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "sharp": "^0.32.1"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.3",
     "@total-typescript/ts-reset": "^0.4.2",
     "@types/node": "20.2.5",
     "@types/react": "18.2.7",

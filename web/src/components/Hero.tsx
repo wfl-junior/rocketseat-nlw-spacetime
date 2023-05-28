@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "./Logo";
 
 interface HeroProps {}
@@ -18,12 +19,12 @@ export function Hero({}: HeroProps): JSX.Element | null {
         </p>
       </div>
 
-      <a
-        href="#"
+      <Link
+        href="/memories/new"
         className="bg-app-green-500 font-alt hover:bg-app-green-600 rounded-full px-5 py-3 text-sm uppercase leading-none text-black transition-colors"
       >
         Cadastrar Lembrança
-      </a>
+      </Link>
     </div>
   );
 }

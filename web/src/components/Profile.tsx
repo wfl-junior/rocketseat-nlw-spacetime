@@ -22,7 +22,7 @@ export function Profile({}: ProfileProps): JSX.Element | null {
         <span>{name}</span>
 
         <a
-          href="#"
+          href="/api/auth/logout"
           className="text-red-400 transition-colors hover:text-red-300"
         >
           Quero sair
