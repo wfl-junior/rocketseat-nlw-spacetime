@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { randomUUID } from "node:crypto";
-import { createWriteStream } from "node:fs";
+import fs from "node:fs";
 import { extname, resolve } from "node:path";
 import { pipeline } from "node:stream";
 import { promisify } from "node:util";
@@ -9,9 +9,11 @@ const pump = promisify(pipeline);
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.post("/upload", async (request, response) => {
+    await request.jwtVerify();
+
     const upload = await request.file({
       limits: {
-        fieldSize: Math.pow(1024, 2) * 5, // 5MiB
+        fieldSize: 1024 ** 2 * 200, // 200MiB
       },
     });
 
@@ -31,17 +33,20 @@ export async function uploadRoutes(app: FastifyInstance) {
     const extension = extname(upload.filename);
     const fileName = fileId.concat(extension);
 
-    const writeStream = createWriteStream(
-      resolve(__dirname, "..", "..", "uploads", fileName),
+    const uploadDirectory = resolve(__dirname, "..", "..", "uploads");
+
+    if (!fs.existsSync(uploadDirectory)) {
+      fs.mkdirSync(uploadDirectory, { recursive: true });
+    }
+
+    const writeStream = fs.createWriteStream(
+      resolve(uploadDirectory, fileName),
     );
 
     await pump(upload.file, writeStream);
 
-    const fullUrl = request.protocol.concat("://").concat(request.hostname);
-    const fileUrl = new URL(`/uploads/${fileName}`, fullUrl).toString();
-
     return {
-      fileUrl,
+      fileUrl: `/uploads/${fileName}`,
     };
   });
 }

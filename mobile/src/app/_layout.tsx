@@ -5,13 +5,15 @@ import {
   useFonts,
 } from "@expo-google-fonts/roboto";
 import { SplashScreen, Stack } from "expo-router";
-import * as ExpoSecureStore from "expo-secure-store";
+import * as SecureStore from "expo-secure-store";
 import { styled } from "nativewind";
 import { Fragment, useEffect, useState } from "react";
 import { ImageBackground, StatusBar } from "react-native";
 import bgBlur from "~/assets/bg-blur.png";
 import Stripes from "~/assets/stripes.svg";
 import { ACCESS_TOKEN_STORE_NAME } from "~/constants";
+import { AuthContextProvider } from "~/contexts/AuthContext";
+import "~/lib/dayjs";
 
 const StyledStripes = styled(Stripes);
 
@@ -26,7 +28,7 @@ function Layout({}: LayoutProps): JSX.Element | null {
   });
 
   useEffect(() => {
-    ExpoSecureStore.getItemAsync(ACCESS_TOKEN_STORE_NAME).then(accessToken => {
+    SecureStore.getItemAsync(ACCESS_TOKEN_STORE_NAME).then(accessToken => {
       setIsAuthenticated(Boolean(accessToken));
     });
   }, []);
@@ -53,16 +55,18 @@ function Layout({}: LayoutProps): JSX.Element | null {
       >
         <StyledStripes className="absolute left-2" />
 
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "transparent" },
-          }}
-        >
-          <Stack.Screen name="index" redirect={isAuthenticated} />
-          <Stack.Screen name="new-memory" />
-          <Stack.Screen name="memories" />
-        </Stack>
+        <AuthContextProvider setIsAuthenticated={setIsAuthenticated}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "transparent" },
+            }}
+          >
+            <Stack.Screen name="index" redirect={isAuthenticated} />
+            <Stack.Screen name="memories" />
+            <Stack.Screen name="new-memory" />
+          </Stack>
+        </AuthContextProvider>
       </ImageBackground>
     </Fragment>
   );

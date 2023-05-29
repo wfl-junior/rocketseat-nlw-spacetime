@@ -7,6 +7,7 @@ interface MemoryPreview {
   id: string;
   coverUrl: string;
   excerpt: string;
+  createdAt: Date;
 }
 
 const excerptMaxLength = 115;
@@ -29,6 +30,7 @@ export async function memoryRoutes(app: FastifyInstance) {
         (memory): MemoryPreview => ({
           id: memory.id,
           coverUrl: memory.coverUrl,
+          createdAt: memory.createdAt,
           excerpt:
             memory.content.length > excerptMaxLength
               ? memory.content.substring(0, excerptMaxLength).concat("...")

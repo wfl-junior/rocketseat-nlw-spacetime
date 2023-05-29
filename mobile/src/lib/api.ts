@@ -1,5 +1,9 @@
 import axios from "axios";
+import { BACKEND_URL } from "~/constants";
 
 export const api = axios.create({
-  baseURL: "http://192.168.1.32:3333",
+  baseURL: BACKEND_URL,
+  headers: {
+    "X-Request-From": "mobile",
+  },
 });

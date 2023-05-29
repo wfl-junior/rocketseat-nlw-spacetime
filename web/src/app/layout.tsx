@@ -6,6 +6,7 @@ import { Hero } from "~/components/Hero";
 import { Profile } from "~/components/Profile";
 import { SignIn } from "~/components/SignIn";
 import { ACCESS_TOKEN_COOKIE_NAME } from "~/constants";
+import "~/lib/dayjs";
 import "./globals.css";
 
 const roboto = Roboto_Flex({
@@ -55,7 +56,9 @@ function RootLayout({ children }: RootLayoutProps): JSX.Element | null {
           </div>
 
           {/* Right */}
-          <div className="bg-stars flex flex-col bg-cover p-16">{children}</div>
+          <div className="bg-stars flex max-h-screen flex-col overflow-y-auto bg-cover">
+            {children}
+          </div>
         </main>
       </body>
     </html>

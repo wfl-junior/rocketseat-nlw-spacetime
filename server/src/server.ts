@@ -14,7 +14,7 @@ import { uploadRoutes } from "./routes/upload";
 
 const app = fastify({ logger: true });
 
-app.register(fastifyMultipart);
+app.register(fastifyMultipart, { throwFileSizeLimit: true });
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCors, { origin: "http://localhost:3000" });
 app.register(fastifyStatic, {
